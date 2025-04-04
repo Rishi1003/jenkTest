@@ -90,7 +90,6 @@ pipeline {
     post {
         always {
             echo 'Pipeline execution completed'
-            cleanWs()
         }
         success {
             echo 'Next.js build and deployment pipeline succeeded!'
