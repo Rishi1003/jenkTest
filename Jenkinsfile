@@ -54,10 +54,5 @@
              // Archive the logs
              archiveArtifacts artifacts: 'nextjs.log', allowEmptyArchive: true
          }
-         cleanup {
-             // Optional: Keep the server running or shut it down
-             // Uncomment the next line if you want to stop the server after the build
-             // sh 'pkill -f "node.*next" || true'
-         }
      }
  }
