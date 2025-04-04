@@ -1,14 +1,6 @@
 pipeline {
     agent any
     
-    environment {
-        // Environment variables
-        NODE_ENV = 'production'
-        NEXT_TELEMETRY_DISABLED = '1'
-        // Use the Node.js installation in your Jenkins environment
-        PATH = "${tool 'NodeJS'}/bin:${env.PATH}"
-    }
-    
     stages {
         stage('Prepare Environment') {
             steps {
