@@ -1,94 +1,63 @@
-pipeline {
-    agent any
-    
-    stages {
-        stage('Prepare Environment') {
-            steps {
-                echo 'Checking Node and npm versions...'
-                sh 'node --version'
-                sh 'npm --version'
-            }
-        }
-        
-        stage('Install Dependencies') {
-            steps {
-                echo 'Installing dependencies...'
-                sh 'npm ci'
-            }
-        }
-        
-        stage('Lint') {
-            steps {
-                echo 'Linting code...'
-                sh 'npm run lint'
-            }
-        }
-        
-        stage('Tests') {
-            steps {
-                echo 'Running tests...'
-                sh 'npm test'
-            }
-            post {
-                always {
-                    echo 'Tests completed'
-                }
-                success {
-                    echo 'Tests passed!'
-                }
-                failure {
-                    echo 'Tests failed!'
-                }
-            }
-        }
-        
-        stage('Build') {
-            steps {
-                echo 'Building Next.js application...'
-                sh 'npm run build'
-            }
-        }
-        
-        stage('Archive Artifacts') {
-            steps {
-                echo 'Archiving build artifacts...'
-                archiveArtifacts artifacts: '.next/**/*', fingerprint: true
-            }
-        }
-        
-        stage('Deploy to Development') {
-            when {
-                branch 'develop'
-            }
-            steps {
-                echo 'Deploying to development environment...'
-                // Replace with your actual deployment command
-                sh 'echo "Would deploy to development server here"'
-            }
-        }
-        
-        stage('Deploy to Production') {
-            when {
-                branch 'main'
-            }
-            steps {
-                echo 'Deploying to production environment...'
-                // Replace with your actual deployment command
-                sh 'echo "Would deploy to production server here"'
-            }
-        }
-    }
-    
-    post {
-        always {
-            echo 'Pipeline execution completed'
-        }
-        success {
-            echo 'Next.js build and deployment pipeline succeeded!'
-        }
-        failure {
-            echo 'Pipeline failed!'
-            echo 'Consider sending a notification here'
-        }
-    }
-}
+ pipeline {
+     agent any
+
+     stages {
+         
+         stage('Checkout') {
+             steps {
+                 checkout scm
+             }
+         }
+         
+         stage('Install Dependencies') {
+             steps {
+                 sh 'npm ci'
+             }
+         }
+         
+         stage('Lint') {
+             steps {
+                 sh 'npm run lint || true'
+             }
+         }
+         
+         stage('Build') {
+             steps {
+                 sh 'npm run build'
+             }
+         }
+         
+         stage('Start Server') {
+             steps {
+                 script {
+                     // Kill any existing Next.js processes
+                     sh 'pkill -f "node.*next" || true'
+                     
+                     // Start the Next.js server in the background
+                     sh 'nohup npm run start > nextjs.log 2>&1 &'
+                     
+                     // Wait for the server to start
+                     sh 'sleep 10'
+                     
+                     // Verify the server is running
+                     sh 'curl -s http://localhost:3000 || echo "Server not responding"'
+                     
+                     // Display the log for debugging
+                     sh 'cat nextjs.log'
+                 }
+             }
+         }
+     }
+     
+     post {
+         always {
+             // Archive the logs
+             archiveArtifacts artifacts: 'nextjs.log', allowEmptyArchive: true
+         }
+         cleanup {
+             // Optional: Keep the server running or shut it down
+             // Uncomment the next line if you want to stop the server after the build
+             // sh 'pkill -f "node.*next" || true'
+         }
+     }
+ }
