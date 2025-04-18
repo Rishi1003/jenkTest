@@ -9,7 +9,7 @@ pipeline {
     }
 
     triggers {
-        scm('H/5 * * * *')  // Poll SCM every 5 mins
+        // scm('H/5 * * * *')  // Poll SCM every 5 mins
         cron('H 2 * * *')   // Daily build at 2 AM
     }
 
